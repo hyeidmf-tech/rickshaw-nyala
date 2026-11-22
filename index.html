@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>رحلة الركشة: نيالا</title>
+<link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@900&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box}body{margin:0;background:#000;font-family:'Tajawal',sans-serif}
+#box{width:100vw;height:100vh;max-width:430px;margin:0 auto;background:#f9c86f;position:relative;overflow:hidden}
+canvas{width:100%;height:100%;display:block;background:linear-gradient(#6ec6ff,#f9c86f)}
+#top{position:absolute;top:0;left:0;right:0;padding:12px;background:linear-gradient(#0007,#0000);color:#fff;display:flex;justify-content:space-between;font-weight:900;font-size:20px;text-shadow:1px 1px 0 #000}
+#ctrl{position:absolute;bottom:15px;left:0;right:0;display:flex;justify-content:space-between;padding:0 15px;z-index:5}
+.cbtn{width:85px;height:85px;background:#fff;border:4px solid #000;border-radius:50%;font-size:36px;display:flex;align-items:center;justify-content:center;user-select:none}
+#startScreen{position:absolute;inset:0;background:linear-gradient(#000c,#000);display:flex;flex-direction:column;align-items:center;justify-content:center;color:#fff;z-index:10;text-align:center;padding:20px}
+#startScreen h1{font-size:44px;color:#ffeb3b;margin:0;text-shadow:3px 3px 0 #000}
+#startScreen p{font-size:18px}
+#startScreen button{margin-top:20px;padding:14px 45px;font-size:26px;background:#22c55e;color:#fff;border:4px solid #000;border-radius:14px;font-family:'Tajawal';font-weight:900}
+</style>
+</head>
+<body>
+<div id="box">
+<canvas id="game"></canvas>
+<div id="top"><span>💰 <b id="sc">0</b> جنيه</span><span>❤️ <b id="lf">3</b></span></div>
+<div id="ctrl"><div class="cbtn" id="L">◀</div><div class="cbtn" id="R">▶</div></div>
+<div id="startScreen"><h1>🛺 رحلة الركشة<br>نيالا</h1><p>سوق نيالا الكبير<br>لم القروش وتفادى الجمال والحفر!</p><button onclick="start()">ابدأ</button><small style="margin-top:10px">المستوى 3 - سوق نيالا</small></div>
+</div>
+<script>
+const cv=document.getElementById('game'),ctx=cv.getContext('2d');let W,H,px,py,items=[],score=0,life=3,run=false,spd=4,keys={};
+function sz(){W=cv.width=cv.offsetWidth*2;H=cv.height=cv.offsetHeight*2;px=W/2;py=H-220}
+sz();window.onresize=sz;
+function reset(){items=[];score=0;life=3;spd=4;px=W/2;document.getElementById('sc').innerText=0;document.getElementById('lf').innerText=3}
+function spawn(){if(Math.random()<0.04){const r=Math.random();let t=r<0.55?'coin':r<0.8?'camel':'hole';items.push({x:Math.random()*(W-100)+50,y:-80,t,w:70,h:70,d:false})}}
+function loop(){
+if(!run)return;spawn();
+if(keys.L)px-=14;if(keys.R)px+=14;px=Math.max(40,Math.min(W-100,px));
+for(let it of items){it.y+=spd;if(!it.d&&it.y>py-80&&it.y<py+80&&it.x>px-60&&it.x<px+100){
+it.d=true;if(it.t==='coin'){score+=10;document.getElementById('sc').innerText=score;if(score%100==0)spd+=0.6}else{life--;document.getElementById('lf').innerText=life;if(life<=0){gameOver();return}}}}
+items=items.filter(i=>!i.d&&i.y<H+100);
+draw();requestAnimationFrame(loop)}
+function draw(){
+ctx.clearRect(0,0,W,H);
+ctx.fillStyle='#e8b26a';ctx.fillRect(0,0,W,H);
+ctx.fillStyle='#d19955';ctx.fillRect(0,0,W*0.12,H);ctx.fillRect(W*0.88,0,W*0.12,H);
+ctx.strokeStyle='#fff';ctx.lineWidth=6;ctx.setLineDash([40,40]);ctx.beginPath();ctx.moveTo(W*0.36,0);ctx.lineTo(W*0.36,H);ctx.moveTo(W*0.64,0);ctx.lineTo(W*0.64,H);ctx.stroke();ctx.setLineDash([]);
+ctx.font='70px serif';ctx.fillText('🛺',px,py);
+ctx.font='54px serif';for(let it of items){if(it.t==='coin')ctx.fillText('💰',it.x,it.y);else if(it.t==='camel')ctx.fillText('🐪',it.x,it.y);else{ctx.fillStyle='#333';ctx.beginPath();ctx.arc(it.x+35,it.y+35,28,0,Math.PI*2);ctx.fill();ctx.fillStyle='#000';ctx.font='28px serif';ctx.fillText('🕳️',it.x+15,it.y+45);ctx.font='54px serif'}}}
+function gameOver(){run=false;document.getElementById('startScreen').style.display='flex';document.getElementById('startScreen').innerHTML=`<h1>انتهت الرحلة!</h1><p>جمعت ${score} جنيه</p><button onclick="start()">العب تاني 🛺</button>`}
+function start(){reset();run=true;document.getElementById('startScreen').style.display='none';loop()}
+const L=document.getElementById('L'),R=document.getElementById('R');
+function bind(b,k){b.addEventListener('touchstart',e=>{e.preventDefault();keys[k]=true});b.addEventListener('touchend',()=>keys[k]=false);b.addEventListener('mousedown',()=>keys[k]=true);b.addEventListener('mouseup',()=>keys[k]=false)}
+bind(L,'L');bind(R,'R');
+document.addEventListener('keydown',e=>{if(e.key==='ArrowLeft')keys.L=true;if(e.key==='ArrowRight')keys.R=true});
+document.addEventListener('keyup',e=>{if(e.key==='ArrowLeft')keys.L=false;if(e.key==='ArrowRight')keys.R=false});
+</script>
+</body>
+</html>
